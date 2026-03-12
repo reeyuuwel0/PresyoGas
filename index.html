@@ -226,6 +226,152 @@
     #toast.show { opacity:1; }
 
     @media(min-width:600px) { .prices-grid { grid-template-columns:repeat(3,1fr); } }
+
+    /* ── PAYWALL ── */
+    .price-locked {
+      position:relative; display:inline-block;
+      filter:blur(6px); user-select:none; pointer-events:none;
+      color:var(--yellow); font-family:'Syne',sans-serif; font-weight:800; font-size:17px;
+    }
+    .lock-overlay {
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:14px; filter:none;
+    }
+    .price-locked-wrap {
+      position:relative; text-align:right; flex-shrink:0;
+    }
+    .lock-icon {
+      font-size:16px; line-height:1;
+    }
+    .price-locked-card {
+      position:relative; overflow:hidden;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:16px; padding:13px;
+    }
+    .price-locked-card .pc-val {
+      filter:blur(7px); user-select:none; pointer-events:none;
+    }
+    .price-locked-card .lock-badge {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:4px; backdrop-filter:blur(1px);
+    }
+    .lock-badge-icon { font-size:22px; }
+    .lock-badge-text { font-size:10px; color:var(--text-muted); font-weight:500; }
+
+    /* PAYWALL MODAL */
+    #paywall-modal {
+      position:fixed; inset:0; z-index:900;
+      display:flex; flex-direction:column; justify-content:flex-end;
+      opacity:0; pointer-events:none; transition:opacity 0.3s;
+    }
+    #paywall-modal.open { opacity:1; pointer-events:all; }
+    .pw-backdrop {
+      position:absolute; inset:0;
+      background:rgba(0,0,0,0.7); backdrop-filter:blur(6px);
+    }
+    .pw-sheet {
+      position:relative; z-index:1;
+      background:#12121e; border-radius:28px 28px 0 0;
+      border-top:1px solid var(--border);
+      transform:translateY(100%);
+      transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      padding-bottom:40px;
+    }
+    #paywall-modal.open .pw-sheet { transform:translateY(0); }
+    .pw-handle { width:34px; height:4px; background:var(--border); border-radius:99px; margin:12px auto 16px; }
+
+    .pw-hero {
+      text-align:center; padding:0 24px 20px;
+      border-bottom:1px solid var(--border);
+    }
+    .pw-icon {
+      width:72px; height:72px; background:var(--red);
+      border-radius:22px; display:flex; align-items:center; justify-content:center;
+      font-size:34px; margin:0 auto 14px;
+      box-shadow:0 0 50px var(--red-glow);
+    }
+    .pw-title { font-family:'Syne',sans-serif; font-weight:800; font-size:22px; line-height:1.2; }
+    .pw-title span { color:var(--red); }
+    .pw-sub { font-size:13px; color:var(--text-muted); margin-top:6px; line-height:1.5; }
+
+    .pw-perks { padding:18px 24px; display:flex; flex-direction:column; gap:11px; border-bottom:1px solid var(--border); }
+    .pw-perk { display:flex; align-items:center; gap:12px; }
+    .pw-perk-icon { font-size:20px; width:36px; text-align:center; flex-shrink:0; }
+    .pw-perk-text { font-size:13px; color:var(--text-muted); }
+    .pw-perk-text b { color:var(--text); font-weight:600; }
+
+    .pw-price-block { padding:18px 24px 14px; text-align:center; }
+    .pw-amount {
+      font-family:'Syne',sans-serif; font-weight:800; font-size:42px;
+      color:var(--yellow); line-height:1; letter-spacing:-1px;
+    }
+    .pw-amount sup { font-size:22px; vertical-align:super; }
+    .pw-duration { font-size:13px; color:var(--text-muted); margin-top:4px; }
+    .pw-duration b { color:var(--green); }
+
+    .pw-actions { padding:0 24px; display:flex; flex-direction:column; gap:10px; }
+    .pw-btn-gcash {
+      width:100%; padding:16px;
+      background:linear-gradient(135deg,#007DFE,#00C3FF);
+      border:none; border-radius:16px;
+      font-family:'Syne',sans-serif; font-weight:700; font-size:16px;
+      color:#fff; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      transition:opacity 0.2s; box-shadow:0 6px 30px rgba(0,125,254,0.35);
+    }
+    .pw-btn-gcash:hover { opacity:0.9; }
+    .pw-btn-skip {
+      width:100%; padding:13px;
+      background:transparent; border:1px solid var(--border);
+      border-radius:16px; font-family:'DM Sans',sans-serif;
+      font-size:14px; color:var(--text-muted); cursor:pointer;
+      transition:all 0.2s;
+    }
+    .pw-btn-skip:hover { border-color:rgba(255,255,255,0.2); color:var(--text); }
+
+    .pw-fine { font-size:11px; color:var(--text-muted); text-align:center; padding:10px 24px 0; }
+
+    /* SUCCESS SCREEN */
+    #success-screen {
+      position:fixed; inset:0; z-index:950;
+      background:var(--bg);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:14px; opacity:0; pointer-events:none;
+      transition:opacity 0.4s;
+    }
+    #success-screen.show { opacity:1; pointer-events:all; }
+    .success-icon {
+      width:90px; height:90px; background:rgba(0,230,118,0.12);
+      border:2px solid var(--green); border-radius:99px;
+      display:flex; align-items:center; justify-content:center; font-size:40px;
+      animation:pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes pop-in { from{transform:scale(0.5);opacity:0;} to{transform:scale(1);opacity:1;} }
+    .success-title { font-family:'Syne',sans-serif; font-weight:800; font-size:24px; }
+    .success-sub { font-size:14px; color:var(--text-muted); text-align:center; max-width:260px; line-height:1.5; }
+    .success-expiry {
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:14px; padding:12px 20px; text-align:center;
+    }
+    .success-expiry-label { font-size:11px; color:var(--text-muted); }
+    .success-expiry-date { font-family:'Syne',sans-serif; font-weight:700; font-size:16px; color:var(--green); margin-top:2px; }
+    .success-btn {
+      background:var(--red); border:none; border-radius:16px;
+      padding:14px 40px; font-family:'Syne',sans-serif; font-weight:700;
+      font-size:15px; color:#fff; cursor:pointer;
+      margin-top:8px; transition:opacity 0.2s;
+    }
+    .success-btn:hover { opacity:0.9; }
+
+    /* member badge in topbar */
+    .member-badge {
+      background:linear-gradient(135deg,var(--yellow),#FF9500);
+      color:#000; font-size:10px; font-weight:700;
+      border-radius:99px; padding:3px 8px; letter-spacing:0.3px;
+      flex-shrink:0;
+    }
   </style>
 </head>
 <body>
@@ -247,6 +393,7 @@
         <span>⛽</span>
         <span class="logo-name">Presyo<span>Gas</span></span>
       </div>
+      <div class="member-badge" id="member-badge" style="display:none">⭐ MEMBER</div>
       <div class="search-box">
         <span style="color:var(--text-muted);font-size:15px">🔍</span>
         <input type="text" placeholder="Search stations in CDO..." id="search-input" />
@@ -354,7 +501,7 @@ function getFiltered() {
 function renderMarkers(list) {
   Object.values(leafletMarkers).forEach(m=>map.removeLayer(m));
   leafletMarkers={};
-  list.forEach(s=>{
+  list.forEach((s,idx)=>{
     const m = L.marker([s.lat,s.lng],{icon:makeIcon(s),zIndexOffset:s.id===activeId?500:0}).addTo(map);
     m.on('click',()=>openStation(s));
     leafletMarkers[s.id]=m;
@@ -367,7 +514,7 @@ function renderList(list) {
   document.getElementById('station-count').textContent=`${list.length} station${list.length!==1?'s':''} in Cagayan de Oro`;
   const globalMin = Math.min(...list.map(s=>s.lp||Math.min(...Object.values(s.prices).map(p=>p.price))));
 
-  list.forEach(s=>{
+  list.forEach((s,idx)=>{
     const lp = s.lp ?? Math.min(...Object.values(s.prices).map(p=>p.price));
     const d = s.d ?? dist(CDO[0],CDO[1],s.lat,s.lng);
     const isCheapest = lp===globalMin;
@@ -384,11 +531,21 @@ function renderList(list) {
           <span class="open-badge ${s.open24?'open':'closed'}">${s.open24?'24 hrs':'Until 10PM'}</span>
         </div>
       </div>
-      <div class="price-col">
-        <div class="price-label">Lowest</div>
-        <div class="price-value">₱${lp.toFixed(2)}</div>
-        <div class="price-unit">/liter</div>
-      </div>`;
+      ${isMember || idx < 2 ? `
+        <div class="price-col">
+          <div class="price-label">Lowest</div>
+          <div class="price-value">₱${lp.toFixed(2)}</div>
+          <div class="price-unit">/liter</div>
+        </div>` : `
+        <div class="price-locked-wrap" onclick="event.stopPropagation();openPaywall()">
+          <div class="price-label">Lowest</div>
+          <div style="position:relative;display:inline-block">
+            <div class="price-locked">₱${lp.toFixed(2)}</div>
+            <div class="lock-overlay">🔒</div>
+          </div>
+          <div class="price-unit" style="color:var(--red);font-size:9px;margin-top:2px">TAP TO UNLOCK</div>
+        </div>`
+      }`;
     card.addEventListener('click',()=>openStation(s));
     el.appendChild(card);
   });
@@ -449,6 +606,23 @@ function openStation(s) {
     <div class="sec-label">Fuel Prices</div>
     <div class="prices-grid">${pricesHTML}</div>`;
 
+  // Gate: only show prices if member or first 2 stations
+  const stationIdx = getFiltered().findIndex(x=>x.id===s.id);
+  if (!isMember && stationIdx >= 2) {
+    // Show station info but blur prices in modal
+    const grid = document.querySelector('#modal-content .prices-grid');
+    if (grid) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:20px 0">
+          <div style="font-size:36px;margin-bottom:10px">🔒</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px">Prices Locked</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Unlock all CDO station prices<br>for just ₱250 / 3 months</div>
+          <button onclick="closeModal();openPaywall()" style="background:var(--red);border:none;border-radius:14px;padding:13px 28px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff;cursor:pointer">
+            Unlock Now — ₱250
+          </button>
+        </div>`;
+    }
+  }
   document.getElementById('station-modal').classList.add('open');
 }
 
@@ -502,8 +676,51 @@ document.getElementById('search-input').addEventListener('input',e=>{
   renderMarkers(f); renderList(f);
 });
 
+
+// ── MEMBERSHIP STATE ──
+// In production this would check against your backend/PayMongo
+let isMember = false;
+
+function checkMembership() {
+  const expiry = localStorage.getItem('pg_expiry');
+  if (expiry && new Date(expiry) > new Date()) {
+    isMember = true;
+    document.getElementById('member-badge').style.display = 'flex';
+  }
+}
+
+function openPaywall() {
+  document.getElementById('paywall-modal').classList.add('open');
+}
+
+function closePaywall() {
+  document.getElementById('paywall-modal').classList.remove('open');
+}
+
+function handlePayment() {
+  // In production: call PayMongo API here to create GCash payment link
+  // For prototype: simulate successful payment
+  closePaywall();
+  const expiry = new Date();
+  expiry.setMonth(expiry.getMonth() + 3);
+  document.getElementById('expiry-date').textContent = expiry.toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('success-screen').classList.add('show');
+  localStorage.setItem('pg_expiry', expiry.toISOString());
+}
+
+function activateMember() {
+  isMember = true;
+  document.getElementById('success-screen').classList.remove('show');
+  document.getElementById('member-badge').style.display = 'flex';
+  showToast('🎉 Welcome, Member! All prices unlocked!');
+  refresh();
+}
+
+document.getElementById('pw-backdrop').addEventListener('click', closePaywall);
+
 function startApp() {
   if (typeof L === 'undefined') { setTimeout(startApp, 100); return; }
+  checkMembership();
   initMap();
   setTimeout(()=>{
     document.getElementById('splash').classList.add('hide');
@@ -512,6 +729,49 @@ function startApp() {
 }
 window.addEventListener('load', startApp);
 </script>
+<!-- PAYWALL MODAL -->
+<div id="paywall-modal">
+  <div class="pw-backdrop" id="pw-backdrop"></div>
+  <div class="pw-sheet">
+    <div class="pw-handle"></div>
+    <div class="pw-hero">
+      <div class="pw-icon">⛽</div>
+      <div class="pw-title">Unlock <span>PresyoGas</span></div>
+      <div class="pw-sub">See real-time fuel prices at all CDO stations.<br>Save on every fill-up.</div>
+    </div>
+    <div class="pw-perks">
+      <div class="pw-perk"><span class="pw-perk-icon">⛽</span><div class="pw-perk-text"><b>All station prices</b> — every fuel type, always updated</div></div>
+      <div class="pw-perk"><span class="pw-perk-icon">💚</span><div class="pw-perk-text"><b>Cheapest finder</b> — we highlight the best deal near you</div></div>
+      <div class="pw-perk"><span class="pw-perk-icon">📍</span><div class="pw-perk-text"><b>GPS-based sorting</b> — nearest cheap station first</div></div>
+      <div class="pw-perk"><span class="pw-perk-icon">🔔</span><div class="pw-perk-text"><b>Price alerts</b> — know when prices drop <span style="color:var(--red);font-size:10px">coming soon</span></div></div>
+    </div>
+    <div class="pw-price-block">
+      <div class="pw-amount"><sup>₱</sup>250</div>
+      <div class="pw-duration">for <b>3 months</b> of full access</div>
+    </div>
+    <div class="pw-actions">
+      <button class="pw-btn-gcash" onclick="handlePayment()">
+        <span style="font-size:22px">💙</span>
+        Pay with GCash
+      </button>
+      <button class="pw-btn-skip" onclick="closePaywall()">Maybe later</button>
+    </div>
+    <div class="pw-fine">By continuing, you agree to our Terms of Service.<br>One-time payment. No auto-renewal.</div>
+  </div>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div id="success-screen">
+  <div class="success-icon">✓</div>
+  <div class="success-title">You're a Member!</div>
+  <div class="success-sub">All gas prices in CDO are now unlocked for you.</div>
+  <div class="success-expiry">
+    <div class="success-expiry-label">Your membership expires on</div>
+    <div class="success-expiry-date" id="expiry-date">—</div>
+  </div>
+  <button class="success-btn" onclick="activateMember()">Start Saving ⛽</button>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </body>
 </html>
