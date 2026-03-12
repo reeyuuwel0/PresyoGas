@@ -642,7 +642,6 @@ document.querySelectorAll('.filter-pill').forEach(p=>p.addEventListener('click',
   document.querySelectorAll('.filter-pill').forEach(x=>x.classList.remove('active'));
   p.classList.add('active'); activeFilter=p.dataset.filter; refresh();
 }));
-document.getElementById('modal-backdrop').addEventListener('click',closeModal);
 document.getElementById('panel-handle').addEventListener('click',()=>{
   panelExpanded=!panelExpanded;
   document.getElementById('bottom-panel').classList.toggle('expanded',panelExpanded);
@@ -716,11 +715,12 @@ function activateMember() {
   refresh();
 }
 
-document.getElementById('pw-backdrop').addEventListener('click', closePaywall);
-
 function startApp() {
   if (typeof L === 'undefined') { setTimeout(startApp, 100); return; }
   checkMembership();
+  // Attach modal listeners here so DOM is guaranteed ready
+  document.getElementById('pw-backdrop').addEventListener('click', closePaywall);
+  document.getElementById('modal-backdrop').addEventListener('click', closeModal);
   initMap();
   setTimeout(()=>{
     document.getElementById('splash').classList.add('hide');
