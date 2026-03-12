@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>PresyoGas — Pinakamababang Presyo ng Gasolina</title>
+  <title>PresyoGas — Cagayan de Oro</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -11,566 +13,243 @@
     :root {
       --red: #E8002D;
       --red-dark: #B5001F;
-      --red-glow: rgba(232, 0, 45, 0.18);
+      --red-glow: rgba(232,0,45,0.18);
       --yellow: #FFD600;
-      --yellow-soft: #FFF5B0;
       --bg: #0A0A0F;
-      --surface: #13131A;
+      --surface: rgba(16,16,22,0.97);
       --surface2: #1C1C26;
-      --border: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
       --text: #F5F5F7;
-      --text-muted: #8A8A9A;
+      --text-muted: #7A7A8A;
       --green: #00E676;
       --blue: #448AFF;
       --radius: 20px;
       --panel-h: 340px;
     }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { height:100%; width:100%; overflow:hidden; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-    html, body {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    /* ── SPLASH ── */
+    /* SPLASH */
     #splash {
-      position: fixed; inset: 0; z-index: 999;
-      background: var(--bg);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 16px;
-      transition: opacity 0.6s ease, transform 0.6s ease;
+      position:fixed; inset:0; z-index:1000;
+      background:var(--bg);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+      transition:opacity 0.7s ease, transform 0.7s ease;
     }
-    #splash.hide { opacity: 0; transform: scale(1.05); pointer-events: none; }
-
-    .splash-logo {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-    }
+    #splash.hide { opacity:0; transform:scale(1.04); pointer-events:none; }
     .splash-icon {
-      width: 80px; height: 80px;
-      background: var(--red);
-      border-radius: 24px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 38px;
-      box-shadow: 0 0 60px var(--red-glow);
-      animation: pulse-icon 2s ease-in-out infinite;
+      width:88px; height:88px; background:var(--red); border-radius:26px;
+      display:flex; align-items:center; justify-content:center; font-size:42px;
+      box-shadow:0 0 80px var(--red-glow);
+      animation:pulse-icon 2s ease-in-out infinite;
     }
-    @keyframes pulse-icon {
-      0%, 100% { box-shadow: 0 0 40px var(--red-glow); }
-      50% { box-shadow: 0 0 80px rgba(232,0,45,0.4); }
-    }
-    .splash-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 36px; font-weight: 800;
-      letter-spacing: -1px;
-    }
-    .splash-title span { color: var(--red); }
-    .splash-sub {
-      font-size: 14px; color: var(--text-muted);
-      letter-spacing: 0.5px;
-    }
-    .splash-bar {
-      width: 160px; height: 3px;
-      background: var(--surface2);
-      border-radius: 99px;
-      overflow: hidden;
-      margin-top: 32px;
-    }
-    .splash-bar-fill {
-      height: 100%;
-      background: var(--red);
-      width: 0%;
-      border-radius: 99px;
-      animation: load-bar 1.8s ease forwards;
-    }
-    @keyframes load-bar { to { width: 100%; } }
+    @keyframes pulse-icon { 0%,100%{box-shadow:0 0 40px var(--red-glow);}50%{box-shadow:0 0 100px rgba(232,0,45,0.45);} }
+    .splash-title { font-family:'Syne',sans-serif; font-size:38px; font-weight:800; letter-spacing:-1.5px; }
+    .splash-title span { color:var(--red); }
+    .splash-sub { font-size:13px; color:var(--text-muted); }
+    .splash-loc { font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:5px; }
+    .splash-loc b { color:var(--yellow); font-weight:600; }
+    .splash-bar { width:160px; height:3px; background:var(--surface2); border-radius:99px; overflow:hidden; margin-top:28px; }
+    .splash-fill { height:100%; background:var(--red); width:0; border-radius:99px; animation:load 2s ease forwards; }
+    @keyframes load { to{width:100%;} }
 
-    /* ── LAYOUT ── */
-    #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
-
-    /* ── TOPBAR ── */
+    /* TOPBAR */
     #topbar {
-      position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-      padding: 16px 16px 0;
-      display: flex; flex-direction: column; gap: 10px;
-      pointer-events: none;
+      position:absolute; top:0; left:0; right:0; z-index:500;
+      padding:14px 14px 0; display:flex; flex-direction:column; gap:9px;
+      pointer-events:none;
     }
-    .topbar-row {
-      display: flex; align-items: center; gap: 10px;
-      pointer-events: all;
-    }
+    .topbar-row { display:flex; align-items:center; gap:9px; pointer-events:all; }
     .logo-pill {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 10px 14px;
-      display: flex; align-items: center; gap: 8px;
-      backdrop-filter: blur(20px);
-      flex-shrink: 0;
+      background:var(--surface); border:1px solid var(--border); border-radius:14px;
+      padding:9px 13px; display:flex; align-items:center; gap:7px;
+      backdrop-filter:blur(24px); flex-shrink:0; box-shadow:0 4px 20px rgba(0,0,0,0.4);
     }
-    .logo-pill .icon { font-size: 20px; }
-    .logo-pill .name {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 15px;
-      letter-spacing: -0.3px;
-    }
-    .logo-pill .name span { color: var(--red); }
-
+    .logo-name { font-family:'Syne',sans-serif; font-weight:800; font-size:15px; letter-spacing:-0.3px; }
+    .logo-name span { color:var(--red); }
     .search-box {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 10px 14px;
-      display: flex; align-items: center; gap: 8px;
-      backdrop-filter: blur(20px);
+      flex:1; background:var(--surface); border:1px solid var(--border); border-radius:14px;
+      padding:9px 13px; display:flex; align-items:center; gap:8px;
+      backdrop-filter:blur(24px); box-shadow:0 4px 20px rgba(0,0,0,0.4);
     }
-    .search-box input {
-      flex: 1; background: none; border: none; outline: none;
-      color: var(--text); font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-    }
-    .search-box input::placeholder { color: var(--text-muted); }
-    .search-icon { color: var(--text-muted); font-size: 16px; }
-
-    /* Filter pills */
-    .filter-row {
-      display: flex; gap: 8px; overflow-x: auto;
-      scrollbar-width: none; padding-bottom: 2px;
-      pointer-events: all;
-    }
-    .filter-row::-webkit-scrollbar { display: none; }
+    .search-box input { flex:1; background:none; border:none; outline:none; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; }
+    .search-box input::placeholder { color:var(--text-muted); }
+    .filter-row { display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; pointer-events:all; }
+    .filter-row::-webkit-scrollbar { display:none; }
     .filter-pill {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 99px;
-      padding: 7px 14px;
-      font-size: 12px; font-weight: 500;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all 0.2s;
-      backdrop-filter: blur(20px);
-      color: var(--text-muted);
-      flex-shrink: 0;
+      background:var(--surface); border:1px solid var(--border); border-radius:99px;
+      padding:7px 13px; font-size:12px; font-weight:500; white-space:nowrap;
+      cursor:pointer; transition:all 0.2s; backdrop-filter:blur(24px);
+      color:var(--text-muted); flex-shrink:0; box-shadow:0 2px 10px rgba(0,0,0,0.3);
     }
-    .filter-pill.active {
-      background: var(--red);
-      border-color: var(--red);
-      color: #fff;
-    }
-    .filter-pill:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .filter-pill.active { background:var(--red); border-color:var(--red); color:#fff; }
 
-    /* ── MAP AREA ── */
-    #map-container {
-      flex: 1;
-      position: relative;
-      background: #1a1a2e;
-    }
-    #map {
-      width: 100%; height: 100%;
-    }
+    /* MAP */
+    #map { position:absolute; inset:0; z-index:1; }
+    .leaflet-tile { filter:brightness(0.42) saturate(0.5) hue-rotate(195deg); }
+    .leaflet-container { background:#0d0d18; }
+    .leaflet-control-zoom, .leaflet-control-attribution { display:none !important; }
 
-    /* Custom map overlay when no API key */
-    #demo-map {
-      width: 100%; height: 100%;
-      position: relative;
-      overflow: hidden;
-      background: #12121f;
+    /* MARKERS */
+    .pg-marker {
+      background:var(--surface2); border:2px solid rgba(255,255,255,0.1);
+      border-radius:12px; padding:5px 9px;
+      display:flex; align-items:center; gap:5px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.7);
+      cursor:pointer; white-space:nowrap;
+      font-family:'Syne',sans-serif;
+      position:relative;
     }
-
-    /* ── LOCATE BUTTON ── */
-    #locate-btn {
-      position: absolute;
-      bottom: calc(var(--panel-h) + 16px);
-      right: 16px;
-      z-index: 10;
-      width: 48px; height: 48px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      backdrop-filter: blur(20px);
-      font-size: 20px;
-      transition: all 0.2s;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    .pg-marker.active { background:var(--red); border-color:var(--red); }
+    .pg-marker::after {
+      content:''; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+      border:5px solid transparent; border-top-color:var(--surface2);
     }
-    #locate-btn:hover { background: var(--surface2); transform: scale(1.05); }
-    #locate-btn.active { background: var(--red); border-color: var(--red); }
+    .pg-marker.active::after { border-top-color:var(--red); }
+    .pg-marker-price { font-size:12px; font-weight:700; color:var(--yellow); }
+    .pg-marker.active .pg-marker-price { color:#fff; }
 
-    /* ── BOTTOM PANEL ── */
+    .user-dot-el {
+      width:16px; height:16px; border-radius:50%;
+      background:var(--blue); border:3px solid #fff;
+      box-shadow:0 0 0 8px rgba(68,138,255,0.2);
+      animation:upulse 2s ease-in-out infinite;
+    }
+    @keyframes upulse { 0%,100%{box-shadow:0 0 0 8px rgba(68,138,255,0.18);}50%{box-shadow:0 0 0 18px rgba(68,138,255,0.05);} }
+
+    /* FABS */
+    .fab-stack { position:absolute; bottom:calc(var(--panel-h) + 14px); right:14px; z-index:500; display:flex; flex-direction:column; gap:10px; }
+    .fab {
+      width:46px; height:46px; background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; backdrop-filter:blur(20px); font-size:19px;
+      transition:all 0.2s; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+    }
+    .fab:hover { background:var(--surface2); transform:scale(1.06); }
+    .fab.active { background:var(--red); border-color:var(--red); }
+
+    /* BOTTOM PANEL */
     #bottom-panel {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: var(--panel-h);
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      border-radius: 28px 28px 0 0;
-      z-index: 10;
-      display: flex; flex-direction: column;
-      transition: height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 -10px 60px rgba(0,0,0,0.5);
+      position:absolute; bottom:0; left:0; right:0; height:var(--panel-h);
+      background:var(--surface); border-top:1px solid var(--border);
+      border-radius:26px 26px 0 0; z-index:500;
+      display:flex; flex-direction:column;
+      transition:height 0.38s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow:0 -12px 60px rgba(0,0,0,0.6); backdrop-filter:blur(30px);
     }
-    #bottom-panel.expanded { height: 75vh; }
+    #bottom-panel.expanded { height:72vh; }
+    .panel-handle { width:34px; height:4px; background:var(--border); border-radius:99px; margin:11px auto 0; flex-shrink:0; cursor:pointer; }
+    .panel-header { padding:13px 18px 11px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; border-bottom:1px solid var(--border); }
+    .panel-title { font-family:'Syne',sans-serif; font-weight:700; font-size:15px; }
+    .panel-sub { font-size:11px; color:var(--text-muted); margin-top:1px; }
+    .sort-btn { font-size:12px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:4px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); transition:all 0.2s; }
+    .sort-btn:hover { border-color:rgba(255,255,255,0.2); color:var(--text); }
+    .stations-list { flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:9px; scrollbar-width:none; }
+    .stations-list::-webkit-scrollbar { display:none; }
 
-    .panel-handle {
-      width: 36px; height: 4px;
-      background: var(--border);
-      border-radius: 99px;
-      margin: 12px auto 0;
-      flex-shrink: 0;
-      cursor: pointer;
-    }
-
-    .panel-header {
-      padding: 14px 20px 12px;
-      display: flex; align-items: center; justify-content: space-between;
-      flex-shrink: 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .panel-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 16px;
-    }
-    .panel-count {
-      font-size: 12px; color: var(--text-muted);
-    }
-    .sort-btn {
-      font-size: 12px; color: var(--text-muted);
-      cursor: pointer; display: flex; align-items: center; gap: 4px;
-    }
-
-    .stations-list {
-      flex: 1; overflow-y: auto;
-      padding: 12px 16px;
-      display: flex; flex-direction: column; gap: 10px;
-      scrollbar-width: none;
-    }
-    .stations-list::-webkit-scrollbar { display: none; }
-
-    /* ── STATION CARD ── */
+    /* STATION CARD */
     .station-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex; align-items: center; gap: 14px;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:var(--radius); padding:13px 14px;
+      cursor:pointer; transition:all 0.2s;
+      display:flex; align-items:center; gap:13px; position:relative;
     }
-    .station-card:hover, .station-card.active {
-      border-color: var(--red);
-      background: rgba(232,0,45,0.05);
-    }
-    .station-card.active { box-shadow: 0 0 0 1px var(--red); }
+    .station-card:hover { border-color:rgba(232,0,45,0.4); background:rgba(232,0,45,0.04); }
+    .station-card.active { border-color:var(--red); background:rgba(232,0,45,0.06); box-shadow:0 0 0 1px var(--red); }
+    .brand-badge { width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .station-info { flex:1; min-width:0; }
+    .station-name { font-family:'Syne',sans-serif; font-weight:700; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .station-address { font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+    .station-meta { display:flex; gap:7px; margin-top:5px; align-items:center; }
+    .dist-badge { font-size:11px; color:var(--text-muted); }
+    .open-badge { font-size:10px; padding:2px 7px; border-radius:99px; font-weight:600; }
+    .open-badge.open { background:rgba(0,230,118,0.12); color:var(--green); }
+    .open-badge.closed { background:rgba(255,255,255,0.06); color:var(--text-muted); }
+    .price-col { text-align:right; flex-shrink:0; }
+    .price-label { font-size:10px; color:var(--text-muted); }
+    .price-value { font-family:'Syne',sans-serif; font-weight:800; font-size:17px; color:var(--yellow); line-height:1; }
+    .price-unit { font-size:10px; color:var(--text-muted); margin-top:1px; }
+    .cheapest-tag { position:absolute; top:-8px; right:12px; background:var(--green); color:#000; font-size:9px; font-weight:700; border-radius:99px; padding:2px 7px; letter-spacing:0.5px; }
 
-    .brand-badge {
-      width: 46px; height: 46px; border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; flex-shrink: 0;
-      font-weight: 800;
-    }
-
-    .station-info { flex: 1; min-width: 0; }
-    .station-name {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 14px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .station-address {
-      font-size: 11px; color: var(--text-muted);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      margin-top: 2px;
-    }
-    .station-meta {
-      display: flex; gap: 8px; margin-top: 6px; align-items: center;
-    }
-    .dist-badge {
-      font-size: 11px; color: var(--text-muted);
-      display: flex; align-items: center; gap: 3px;
-    }
-    .open-badge {
-      font-size: 10px; padding: 2px 7px; border-radius: 99px;
-      font-weight: 600;
-    }
-    .open-badge.open { background: rgba(0,230,118,0.12); color: var(--green); }
-    .open-badge.closed { background: rgba(255,255,255,0.06); color: var(--text-muted); }
-
-    .price-col { text-align: right; flex-shrink: 0; }
-    .price-label { font-size: 10px; color: var(--text-muted); }
-    .price-value {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 18px; color: var(--yellow);
-      line-height: 1;
-    }
-    .price-type { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-
-    /* ── STATION DETAIL MODAL ── */
-    #station-modal {
-      position: fixed; inset: 0; z-index: 100;
-      display: flex; flex-direction: column; justify-content: flex-end;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    #station-modal.open { opacity: 1; pointer-events: all; }
-
-    .modal-backdrop {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-    }
-
+    /* MODAL */
+    #station-modal { position:fixed; inset:0; z-index:800; display:flex; flex-direction:column; justify-content:flex-end; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+    #station-modal.open { opacity:1; pointer-events:all; }
+    .modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(5px); }
     .modal-sheet {
-      position: relative; z-index: 1;
-      background: var(--surface);
-      border-radius: 28px 28px 0 0;
-      padding: 0 0 40px;
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      max-height: 85vh;
-      overflow-y: auto;
-      scrollbar-width: none;
+      position:relative; z-index:1; background:#12121e;
+      border-radius:28px 28px 0 0; border-top:1px solid var(--border);
+      transform:translateY(100%);
+      transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      max-height:88vh; overflow-y:auto; scrollbar-width:none;
     }
-    .modal-sheet::-webkit-scrollbar { display: none; }
-    #station-modal.open .modal-sheet { transform: translateY(0); }
-
-    .modal-handle {
-      width: 36px; height: 4px; background: var(--border);
-      border-radius: 99px; margin: 12px auto 0;
-    }
-
-    .modal-hero {
-      padding: 20px 20px 0;
-      display: flex; gap: 14px; align-items: flex-start;
-    }
-    .modal-brand-badge {
-      width: 56px; height: 56px; border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; flex-shrink: 0;
-    }
-    .modal-station-info { flex: 1; }
-    .modal-station-name {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 20px; line-height: 1.2;
-    }
-    .modal-station-address {
-      font-size: 13px; color: var(--text-muted); margin-top: 4px;
-    }
-    .modal-badges {
-      display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
-    }
-
-    .modal-actions {
-      display: flex; gap: 10px;
-      padding: 16px 20px;
-    }
+    .modal-sheet::-webkit-scrollbar { display:none; }
+    #station-modal.open .modal-sheet { transform:translateY(0); }
+    .modal-handle { width:34px; height:4px; background:var(--border); border-radius:99px; margin:12px auto 0; }
+    .modal-hero { padding:18px 18px 0; display:flex; gap:14px; align-items:flex-start; }
+    .modal-brand { width:58px; height:58px; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:30px; flex-shrink:0; }
+    .modal-name { font-family:'Syne',sans-serif; font-weight:800; font-size:19px; line-height:1.2; }
+    .modal-addr { font-size:13px; color:var(--text-muted); margin-top:3px; }
+    .modal-badges { display:flex; gap:7px; margin-top:8px; flex-wrap:wrap; }
+    .modal-actions { display:flex; gap:9px; padding:14px 18px; }
     .action-btn {
-      flex: 1; padding: 12px;
-      border-radius: 14px; border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--text); font-family: 'DM Sans', sans-serif;
-      font-size: 13px; font-weight: 500;
-      cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      transition: all 0.2s;
+      flex:1; padding:11px 8px; border-radius:14px; border:1px solid var(--border);
+      background:var(--surface2); color:var(--text); font-family:'DM Sans',sans-serif;
+      font-size:12px; font-weight:500; cursor:pointer;
+      display:flex; flex-direction:column; align-items:center; gap:3px; transition:all 0.2s;
     }
-    .action-btn:hover { border-color: var(--red); background: rgba(232,0,45,0.05); }
-    .action-btn .btn-icon { font-size: 18px; }
-    .action-btn.primary {
-      background: var(--red); border-color: var(--red); color: #fff;
-    }
-    .action-btn.primary:hover { background: var(--red-dark); }
+    .action-btn:hover { border-color:var(--red); background:rgba(232,0,45,0.05); }
+    .action-btn.primary { background:var(--red); border-color:var(--red); color:#fff; }
+    .action-btn.primary:hover { background:var(--red-dark); }
+    .action-btn .bi { font-size:18px; }
+    .sec-label { font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; padding:0 18px; margin-bottom:9px; }
+    .prices-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; padding:0 18px 30px; }
+    .price-card { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:13px; }
+    .pc-type { font-size:11px; color:var(--text-muted); font-weight:500; }
+    .pc-val { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; color:var(--yellow); line-height:1; margin-top:3px; }
+    .pc-per { font-size:10px; color:var(--text-muted); }
+    .pc-change { font-size:11px; font-weight:600; margin-top:4px; }
+    .pc-change.up { color:#FF5252; }
+    .pc-change.down { color:var(--green); }
+    .pc-change.same { color:var(--text-muted); }
+    .updated-row { padding:0 18px 14px; display:flex; align-items:center; gap:6px; }
+    .upd-dot { width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; }
+    .upd-text { font-size:12px; color:var(--text-muted); }
 
-    .section-label {
-      font-family: 'Syne', sans-serif;
-      font-size: 13px; font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 0.8px;
-      padding: 0 20px; margin-bottom: 10px;
-    }
-
-    /* Fuel prices grid */
-    .prices-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      padding: 0 20px 20px;
-    }
-    .price-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-    }
-    .price-card-type {
-      font-size: 12px; color: var(--text-muted); font-weight: 500;
-    }
-    .price-card-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 26px; font-weight: 800;
-      color: var(--yellow);
-      line-height: 1; margin-top: 4px;
-    }
-    .price-card-per { font-size: 11px; color: var(--text-muted); }
-    .price-card-change {
-      font-size: 11px; font-weight: 600; margin-top: 4px;
-    }
-    .price-card-change.up { color: #FF5252; }
-    .price-card-change.down { color: var(--green); }
-    .price-card-change.same { color: var(--text-muted); }
-
-    /* Updated badge */
-    .updated-row {
-      padding: 0 20px 16px;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .updated-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-    .updated-text { font-size: 12px; color: var(--text-muted); }
-
-    /* ── MAP MARKERS (demo) ── */
-    .map-marker {
-      position: absolute;
-      display: flex; flex-direction: column; align-items: center;
-      cursor: pointer;
-      transform: translate(-50%, -100%);
-      transition: transform 0.2s;
-    }
-    .map-marker:hover { transform: translate(-50%, -100%) scale(1.1); }
-    .map-marker.active { transform: translate(-50%, -100%) scale(1.15); z-index: 5; }
-
-    .marker-bubble {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 6px 10px;
-      display: flex; align-items: center; gap: 6px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    .map-marker.active .marker-bubble {
-      background: var(--red); border-color: var(--red);
-    }
-    .marker-emoji { font-size: 14px; }
-    .marker-price {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 13px; color: var(--yellow);
-    }
-    .map-marker.active .marker-price { color: #fff; }
-    .marker-tail {
-      width: 2px; height: 8px; background: var(--surface);
-      transition: background 0.2s;
-    }
-    .map-marker.active .marker-tail { background: var(--red); }
-    .marker-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--surface); border: 1px solid var(--border);
-      transition: background 0.2s;
-    }
-    .map-marker.active .marker-dot { background: var(--red); border-color: var(--red); }
-
-    /* User location dot */
-    .user-dot {
-      position: absolute;
-      transform: translate(-50%, -50%);
-    }
-    .user-dot-inner {
-      width: 14px; height: 14px; border-radius: 50%;
-      background: var(--blue);
-      border: 2px solid #fff;
-      box-shadow: 0 0 0 8px rgba(68,138,255,0.15);
-      animation: user-pulse 2s ease-in-out infinite;
-    }
-    @keyframes user-pulse {
-      0%, 100% { box-shadow: 0 0 0 8px rgba(68,138,255,0.15); }
-      50% { box-shadow: 0 0 0 16px rgba(68,138,255,0.05); }
-    }
-
-    /* ── TOAST ── */
+    /* TOAST */
     #toast {
-      position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 99px;
-      padding: 10px 20px;
-      font-size: 13px; font-weight: 500;
-      z-index: 200;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-      white-space: nowrap;
+      position:fixed; top:110px; left:50%; transform:translateX(-50%);
+      background:var(--surface2); border:1px solid var(--border); border-radius:99px;
+      padding:9px 18px; font-size:13px; font-weight:500; z-index:900;
+      opacity:0; transition:opacity 0.3s; pointer-events:none;
+      white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,0.5);
     }
-    #toast.show { opacity: 1; }
+    #toast.show { opacity:1; }
 
-    /* Scrollable map roads (decorative) */
-    .road-h, .road-v {
-      position: absolute; background: rgba(255,255,255,0.04);
-      pointer-events: none;
-    }
-    .road-h { height: 28px; left: 0; right: 0; }
-    .road-v { width: 28px; top: 0; bottom: 0; }
-    .road-h::after, .road-v::after {
-      content: ''; position: absolute;
-      background: rgba(255,255,255,0.06);
-    }
-    .road-h::after { height: 1px; top: 50%; left: 0; right: 0; }
-    .road-v::after { width: 1px; left: 50%; top: 0; bottom: 0; }
-
-    /* No API key notice */
-    #api-notice {
-      position: absolute; bottom: calc(var(--panel-h) + 70px);
-      left: 50%; transform: translateX(-50%);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 16px;
-      font-size: 12px; color: var(--text-muted);
-      text-align: center; z-index: 8;
-      backdrop-filter: blur(10px);
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    #api-notice strong { color: var(--yellow); }
-
-    @media (min-width: 768px) {
-      :root { --panel-h: 380px; }
-      .prices-grid { grid-template-columns: repeat(3, 1fr); }
-    }
+    @media(min-width:600px) { .prices-grid { grid-template-columns:repeat(3,1fr); } }
   </style>
 </head>
 <body>
 
-<!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo">
-    <div class="splash-icon">⛽</div>
-    <div class="splash-title">Presyo<span>Gas</span></div>
-    <div class="splash-sub">Pinakamababang presyo sa inyong lugar</div>
-  </div>
-  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+  <div class="splash-icon">⛽</div>
+  <div class="splash-title">Presyo<span>Gas</span></div>
+  <div class="splash-sub">Find the cheapest fuel near you</div>
+  <div class="splash-loc">📍 <b>Cagayan de Oro City</b></div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- APP -->
 <div id="app">
-
-  <!-- TOP BAR -->
   <div id="topbar">
     <div class="topbar-row">
       <div class="logo-pill">
-        <span class="icon">⛽</span>
-        <span class="name">Presyo<span>Gas</span></span>
+        <span>⛽</span>
+        <span class="logo-name">Presyo<span>Gas</span></span>
       </div>
       <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Search area, station..." id="search-input" />
+        <span style="color:var(--text-muted);font-size:15px">🔍</span>
+        <input type="text" placeholder="Search stations in CDO..." id="search-input" />
       </div>
     </div>
     <div class="filter-row">
@@ -579,48 +258,26 @@
       <div class="filter-pill" data-filter="shell">Shell</div>
       <div class="filter-pill" data-filter="caltex">Caltex</div>
       <div class="filter-pill" data-filter="phoenix">Phoenix</div>
-      <div class="filter-pill" data-filter="unioil">Unioil</div>
       <div class="filter-pill" data-filter="seaoil">Seaoil</div>
+      <div class="filter-pill" data-filter="unioil">Unioil</div>
+      <div class="filter-pill" data-filter="total">TotalEnergies</div>
     </div>
   </div>
 
-  <!-- MAP -->
-  <div id="map-container">
-    <div id="demo-map" id="map">
-      <!-- Decorative roads -->
-      <div class="road-h" style="top:22%"></div>
-      <div class="road-h" style="top:45%"></div>
-      <div class="road-h" style="top:68%"></div>
-      <div class="road-v" style="left:18%"></div>
-      <div class="road-v" style="left:42%"></div>
-      <div class="road-v" style="left:70%"></div>
-      <div class="road-v" style="left:85%"></div>
+  <div id="map"></div>
 
-      <!-- User location -->
-      <div class="user-dot" style="left:48%; top:48%">
-        <div class="user-dot-inner"></div>
-      </div>
-
-      <!-- Markers injected by JS -->
-      <div id="markers-layer"></div>
-    </div>
-
-    <!-- Locate button -->
-    <button id="locate-btn" title="Find my location">📍</button>
-
-    <!-- Demo notice -->
-    <div id="api-notice">
-      🗺️ <strong>Demo Mode</strong> — Connect Google Maps API to show real streets
-    </div>
+  <div class="fab-stack">
+    <div class="fab" id="locate-btn">📍</div>
+    <div class="fab" id="zin">＋</div>
+    <div class="fab" id="zout">－</div>
   </div>
 
-  <!-- BOTTOM PANEL -->
   <div id="bottom-panel">
     <div class="panel-handle" id="panel-handle"></div>
     <div class="panel-header">
       <div>
-        <div class="panel-title">Nearby Stations</div>
-        <div class="panel-count" id="station-count">6 stations found</div>
+        <div class="panel-title">Gas Stations Near You</div>
+        <div class="panel-sub" id="station-count">8 stations in Cagayan de Oro</div>
       </div>
       <div class="sort-btn" id="sort-btn">↕ Distance</div>
     </div>
@@ -628,305 +285,233 @@
   </div>
 </div>
 
-<!-- STATION DETAIL MODAL -->
 <div id="station-modal">
   <div class="modal-backdrop" id="modal-backdrop"></div>
-  <div class="modal-sheet" id="modal-sheet">
+  <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div id="modal-content"></div>
   </div>
 </div>
 
 <script>
-// ── DATA ──
+const CDO = [8.4850, 124.6480];
+
 const stations = [
-  {
-    id: 1, brand: 'petron', name: 'Petron EDSA Cubao',
-    address: 'EDSA cor. New York St., Cubao, QC',
-    distance: 0.3, open24: true,
-    emoji: '🔴', color: '#C0392B', bg: 'rgba(192,57,43,0.15)',
-    left: '62%', top: '38%',
-    prices: {
-      'Ron 91': { price: 64.00, change: +0.20 },
-      'Ron 95': { price: 68.50, change: 0 },
-      'Ron 97': { price: 71.00, change: -0.15 },
-      'Diesel': { price: 59.80, change: +0.30 },
-    },
-    updated: '2 hours ago'
-  },
-  {
-    id: 2, brand: 'shell', name: 'Shell Timog Ave.',
-    address: 'Timog Ave., South Triangle, QC',
-    distance: 0.7, open24: true,
-    emoji: '🟡', color: '#F39C12', bg: 'rgba(243,156,18,0.15)',
-    left: '28%', top: '25%',
-    prices: {
-      'Ron 91': { price: 64.50, change: 0 },
-      'Ron 95': { price: 68.80, change: +0.10 },
-      'FuelSave Diesel': { price: 60.20, change: 0 },
-      'V-Power': { price: 72.50, change: -0.20 },
-    },
-    updated: '1 hour ago'
-  },
-  {
-    id: 3, brand: 'caltex', name: 'Caltex Quezon Ave.',
-    address: 'Quezon Ave., Quezon City',
-    distance: 1.1, open24: false,
-    emoji: '🔵', color: '#2980B9', bg: 'rgba(41,128,185,0.15)',
-    left: '72%', top: '62%',
-    prices: {
-      'Ron 91': { price: 63.80, change: -0.10 },
-      'Ron 95': { price: 68.00, change: 0 },
-      'Diesel': { price: 59.50, change: +0.15 },
-    },
-    updated: '3 hours ago'
-  },
-  {
-    id: 4, brand: 'phoenix', name: 'Phoenix Commonwealth',
-    address: 'Commonwealth Ave., Batasan Hills, QC',
-    distance: 1.5, open24: true,
-    emoji: '🟠', color: '#E67E22', bg: 'rgba(230,126,34,0.15)',
-    left: '20%', top: '55%',
-    prices: {
-      'Ron 91': { price: 63.50, change: -0.20 },
-      'Ron 95': { price: 67.90, change: 0 },
-      'Diesel': { price: 59.20, change: 0 },
-      'Premium Diesel': { price: 62.00, change: -0.10 },
-    },
-    updated: '30 mins ago'
-  },
-  {
-    id: 5, brand: 'unioil', name: 'Unioil Katipunan',
-    address: 'Katipunan Ave., Loyola Heights, QC',
-    distance: 1.9, open24: false,
-    emoji: '🟢', color: '#27AE60', bg: 'rgba(39,174,96,0.15)',
-    left: '45%', top: '20%',
-    prices: {
-      'Ron 91': { price: 63.20, change: -0.30 },
-      'Ron 95': { price: 67.50, change: -0.10 },
-      'Diesel': { price: 58.90, change: -0.20 },
-    },
-    updated: '45 mins ago'
-  },
-  {
-    id: 6, brand: 'seaoil', name: 'Seaoil Aurora Blvd.',
-    address: 'Aurora Blvd., New Manila, QC',
-    distance: 2.3, open24: true,
-    emoji: '⚪', color: '#7F8C8D', bg: 'rgba(127,140,141,0.15)',
-    left: '55%', top: '72%',
-    prices: {
-      'Ron 91': { price: 62.90, change: -0.40 },
-      'Ron 95': { price: 67.20, change: -0.20 },
-      'Diesel': { price: 58.60, change: -0.30 },
-    },
-    updated: '1 hour ago'
-  },
+  { id:1, brand:'petron', name:'Petron Limketkai', address:'Limketkai Drive, Lapasan, CDO', lat:8.4880, lng:124.6563, open24:true, emoji:'🔴', bg:'rgba(192,57,43,0.15)',
+    prices:{ 'Ron 91':{price:63.75,change:+0.20}, 'Ron 95':{price:67.90,change:0}, 'Ron 97':{price:70.50,change:-0.10}, 'Diesel':{price:59.30,change:+0.25} }, updated:'1 hour ago' },
+  { id:2, brand:'shell', name:'Shell Divisoria', address:'Tiano Brothers St., Divisoria, CDO', lat:8.4795, lng:124.6430, open24:true, emoji:'🟡', bg:'rgba(230,126,34,0.15)',
+    prices:{ 'Ron 91':{price:64.00,change:0}, 'FuelSave 95':{price:68.20,change:+0.10}, 'V-Power':{price:71.80,change:-0.20}, 'Diesel':{price:59.60,change:0} }, updated:'2 hours ago' },
+  { id:3, brand:'caltex', name:'Caltex Puerto', address:'C.M. Recto Ave., Puerto, CDO', lat:8.4748, lng:124.6510, open24:false, emoji:'🔵', bg:'rgba(41,128,185,0.15)',
+    prices:{ 'Ron 91':{price:63.50,change:-0.10}, 'Ron 95':{price:67.70,change:0}, 'Diesel':{price:59.10,change:+0.15} }, updated:'3 hours ago' },
+  { id:4, brand:'phoenix', name:'Phoenix Bulua', address:'National Highway, Bulua, CDO', lat:8.4650, lng:124.6190, open24:true, emoji:'🟠', bg:'rgba(211,84,0,0.15)',
+    prices:{ 'Ron 91':{price:63.20,change:-0.20}, 'Ron 95':{price:67.50,change:-0.10}, 'Diesel':{price:58.90,change:-0.20}, 'Premium Diesel':{price:61.50,change:-0.10} }, updated:'30 mins ago' },
+  { id:5, brand:'seaoil', name:'Seaoil Kauswagan', address:'Kauswagan National Hwy, CDO', lat:8.4920, lng:124.6650, open24:false, emoji:'🟢', bg:'rgba(39,174,96,0.15)',
+    prices:{ 'Ron 91':{price:63.00,change:-0.30}, 'Ron 95':{price:67.20,change:-0.20}, 'Diesel':{price:58.70,change:-0.25} }, updated:'45 mins ago' },
+  { id:6, brand:'total', name:'TotalEnergies Nazareth', address:'Mortola St., Nazareth, CDO', lat:8.4830, lng:124.6480, open24:true, emoji:'⭕', bg:'rgba(192,57,43,0.1)',
+    prices:{ 'Ron 91':{price:63.80,change:0}, 'Ron 95':{price:68.00,change:+0.05}, 'Diesel':{price:59.40,change:0} }, updated:'1 hour ago' },
+  { id:7, brand:'petron', name:'Petron Macabalan', address:'Macabalan Ave., Macabalan, CDO', lat:8.5010, lng:124.6580, open24:false, emoji:'🔴', bg:'rgba(192,57,43,0.15)',
+    prices:{ 'Ron 91':{price:63.75,change:+0.20}, 'Ron 95':{price:67.90,change:0}, 'Diesel':{price:59.30,change:+0.15} }, updated:'2 hours ago' },
+  { id:8, brand:'unioil', name:'Unioil Gusa', address:'National Highway, Gusa, CDO', lat:8.5070, lng:124.6720, open24:true, emoji:'🟤', bg:'rgba(121,85,72,0.15)',
+    prices:{ 'Ron 91':{price:62.90,change:-0.40}, 'Ron 95':{price:67.10,change:-0.20}, 'Diesel':{price:58.60,change:-0.30} }, updated:'20 mins ago' },
 ];
 
-let activeFilter = 'all';
-let activeStation = null;
-let sortMode = 'distance'; // distance | price
-let panelExpanded = false;
+let map, leafletMarkers = {}, userMarker = null;
+let activeFilter = 'all', activeId = null, sortMode = 'distance', panelExpanded = false, userPos = null;
 
-// ── RENDER MARKERS ──
+function initMap() {
+  map = L.map('map', { center:CDO, zoom:14, zoomControl:false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+  placeUserDot(CDO[0], CDO[1]);
+  refresh();
+}
+
+function placeUserDot(lat, lng) {
+  if (userMarker) map.removeLayer(userMarker);
+  const icon = L.divIcon({ html:'<div class="user-dot-el"></div>', className:'', iconAnchor:[8,8] });
+  userMarker = L.marker([lat,lng], {icon, zIndexOffset:1000}).addTo(map);
+}
+
+function makeIcon(s) {
+  const lp = Math.min(...Object.values(s.prices).map(p=>p.price));
+  const isActive = s.id === activeId;
+  const html = `<div class="pg-marker${isActive?' active':''}"><span>${s.emoji}</span><span class="pg-marker-price">₱${lp.toFixed(2)}</span></div>`;
+  return L.divIcon({ html, className:'', iconAnchor:[44,36] });
+}
+
+function dist(lat1,lng1,lat2,lng2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+}
+
+function getFiltered() {
+  const ref = userPos || {lat:CDO[0],lng:CDO[1]};
+  let list = (activeFilter==='all' ? [...stations] : stations.filter(s=>s.brand===activeFilter))
+    .map(s=>({...s, d:dist(ref.lat,ref.lng,s.lat,s.lng), lp:Math.min(...Object.values(s.prices).map(p=>p.price))}));
+  return sortMode==='price' ? list.sort((a,b)=>a.lp-b.lp) : list.sort((a,b)=>a.d-b.d);
+}
+
 function renderMarkers(list) {
-  const layer = document.getElementById('markers-layer');
-  layer.innerHTML = '';
-  list.forEach(s => {
-    const firstPrice = Object.values(s.prices)[0].price;
-    const div = document.createElement('div');
-    div.className = 'map-marker' + (activeStation?.id === s.id ? ' active' : '');
-    div.style.left = s.left;
-    div.style.top = s.top;
-    div.innerHTML = `
-      <div class="marker-bubble">
-        <span class="marker-emoji">${s.emoji}</span>
-        <span class="marker-price">₱${firstPrice.toFixed(2)}</span>
-      </div>
-      <div class="marker-tail"></div>
-      <div class="marker-dot"></div>
-    `;
-    div.addEventListener('click', () => openStation(s));
-    layer.appendChild(div);
+  Object.values(leafletMarkers).forEach(m=>map.removeLayer(m));
+  leafletMarkers={};
+  list.forEach(s=>{
+    const m = L.marker([s.lat,s.lng],{icon:makeIcon(s),zIndexOffset:s.id===activeId?500:0}).addTo(map);
+    m.on('click',()=>openStation(s));
+    leafletMarkers[s.id]=m;
   });
 }
 
-// ── RENDER STATION LIST ──
 function renderList(list) {
-  const container = document.getElementById('stations-list');
-  container.innerHTML = '';
-  document.getElementById('station-count').textContent = `${list.length} station${list.length !== 1 ? 's' : ''} found`;
+  const el = document.getElementById('stations-list');
+  el.innerHTML='';
+  document.getElementById('station-count').textContent=`${list.length} station${list.length!==1?'s':''} in Cagayan de Oro`;
+  const globalMin = Math.min(...list.map(s=>s.lp||Math.min(...Object.values(s.prices).map(p=>p.price))));
 
-  list.forEach(s => {
-    const firstType = Object.keys(s.prices)[0];
-    const firstPrice = s.prices[firstType].price;
+  list.forEach(s=>{
+    const lp = s.lp ?? Math.min(...Object.values(s.prices).map(p=>p.price));
+    const d = s.d ?? dist(CDO[0],CDO[1],s.lat,s.lng);
+    const isCheapest = lp===globalMin;
     const card = document.createElement('div');
-    card.className = 'station-card' + (activeStation?.id === s.id ? ' active' : '');
-    card.innerHTML = `
-      <div class="brand-badge" style="background:${s.bg}; color:${s.color}; font-size:24px">${s.emoji}</div>
+    card.className='station-card'+(s.id===activeId?' active':'');
+    card.innerHTML=`
+      ${isCheapest?'<div class="cheapest-tag">💚 CHEAPEST</div>':''}
+      <div class="brand-badge" style="background:${s.bg}">${s.emoji}</div>
       <div class="station-info">
         <div class="station-name">${s.name}</div>
         <div class="station-address">${s.address}</div>
         <div class="station-meta">
-          <span class="dist-badge">📍 ${s.distance} km</span>
-          <span class="open-badge ${s.open24 ? 'open' : 'closed'}">${s.open24 ? '24 hrs' : 'Until 10PM'}</span>
+          <span class="dist-badge">📍 ${d} km</span>
+          <span class="open-badge ${s.open24?'open':'closed'}">${s.open24?'24 hrs':'Until 10PM'}</span>
         </div>
       </div>
       <div class="price-col">
         <div class="price-label">Lowest</div>
-        <div class="price-value">₱${firstPrice.toFixed(2)}</div>
-        <div class="price-type">${firstType}</div>
-      </div>
-    `;
-    card.addEventListener('click', () => openStation(s));
-    container.appendChild(card);
+        <div class="price-value">₱${lp.toFixed(2)}</div>
+        <div class="price-unit">/liter</div>
+      </div>`;
+    card.addEventListener('click',()=>openStation(s));
+    el.appendChild(card);
   });
 }
 
-// ── FILTER & SORT ──
-function getFiltered() {
-  let list = activeFilter === 'all' ? [...stations] : stations.filter(s => s.brand === activeFilter);
-  if (sortMode === 'price') {
-    list.sort((a, b) => Object.values(a.prices)[0].price - Object.values(b.prices)[0].price);
-  } else {
-    list.sort((a, b) => a.distance - b.distance);
-  }
-  return list;
-}
-
 function refresh() {
-  const list = getFiltered();
+  const list=getFiltered();
   renderMarkers(list);
   renderList(list);
 }
 
-// ── OPEN STATION DETAIL ──
 function openStation(s) {
-  activeStation = s;
+  activeId=s.id;
   refresh();
+  map.flyTo([s.lat,s.lng],16,{duration:0.8});
 
-  const modal = document.getElementById('station-modal');
-  const content = document.getElementById('modal-content');
+  const allPrices=stations.flatMap(x=>Object.values(x.prices).map(p=>p.price));
+  const globalMin=Math.min(...allPrices);
+  const d=dist(userPos?.lat||CDO[0],userPos?.lng||CDO[1],s.lat,s.lng);
 
-  const pricesHTML = Object.entries(s.prices).map(([type, data]) => {
-    const changeClass = data.change > 0 ? 'up' : data.change < 0 ? 'down' : 'same';
-    const changeText = data.change > 0 ? `▲ +₱${data.change.toFixed(2)}` : data.change < 0 ? `▼ ₱${Math.abs(data.change).toFixed(2)}` : '— No change';
-    return `
-      <div class="price-card">
-        <div class="price-card-type">${type}</div>
-        <div class="price-card-value">₱${data.price.toFixed(2)}</div>
-        <div class="price-card-per">per liter</div>
-        <div class="price-card-change ${changeClass}">${changeText}</div>
-      </div>
-    `;
+  const pricesHTML=Object.entries(s.prices).map(([type,data])=>{
+    const cls=data.change>0?'up':data.change<0?'down':'same';
+    const txt=data.change>0?`▲ +₱${data.change.toFixed(2)}`:data.change<0?`▼ ₱${Math.abs(data.change).toFixed(2)}`:'— No change';
+    const cheapest=data.price===globalMin;
+    return `<div class="price-card"${cheapest?' style="border-color:rgba(0,230,118,0.4)"':''}>
+      ${cheapest?'<div style="font-size:9px;color:var(--green);font-weight:700;margin-bottom:2px">💚 CHEAPEST IN CDO</div>':''}
+      <div class="pc-type">${type}</div>
+      <div class="pc-val">₱${data.price.toFixed(2)}</div>
+      <div class="pc-per">per liter</div>
+      <div class="pc-change ${cls}">${txt}</div>
+    </div>`;
   }).join('');
 
-  content.innerHTML = `
+  document.getElementById('modal-content').innerHTML=`
     <div class="modal-hero">
-      <div class="modal-brand-badge" style="background:${s.bg}; font-size:28px">${s.emoji}</div>
-      <div class="modal-station-info">
-        <div class="modal-station-name">${s.name}</div>
-        <div class="modal-station-address">${s.address}</div>
+      <div class="modal-brand" style="background:${s.bg}">${s.emoji}</div>
+      <div style="flex:1">
+        <div class="modal-name">${s.name}</div>
+        <div class="modal-addr">${s.address}</div>
         <div class="modal-badges">
-          <span class="open-badge ${s.open24 ? 'open' : 'closed'}" style="font-size:11px;padding:3px 9px">${s.open24 ? '🟢 Open 24 hrs' : '🔴 Until 10PM'}</span>
-          <span class="open-badge same" style="font-size:11px;padding:3px 9px">📍 ${s.distance} km away</span>
+          <span class="open-badge ${s.open24?'open':'closed'}" style="font-size:11px;padding:3px 9px">${s.open24?'🟢 Open 24 hrs':'🔴 Until 10PM'}</span>
+          <span class="open-badge same" style="font-size:11px;padding:3px 9px">📍 ${d} km away</span>
         </div>
       </div>
     </div>
-
     <div class="modal-actions">
-      <button class="action-btn primary" onclick="showToast('Opening directions...')">
-        <span class="btn-icon">🗺️</span>
-        <span>Directions</span>
+      <button class="action-btn primary" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}','_blank')">
+        <span class="bi">🗺️</span><span>Directions</span>
       </button>
-      <button class="action-btn" onclick="showToast('Saved to favorites!')">
-        <span class="btn-icon">♡</span>
-        <span>Save</span>
+      <button class="action-btn" onclick="showToast('✅ Saved to favorites!')">
+        <span class="bi">♡</span><span>Save</span>
       </button>
-      <button class="action-btn" onclick="showToast('Thanks for the update!')">
-        <span class="btn-icon">✏️</span>
-        <span>Update</span>
+      <button class="action-btn" onclick="showToast('📝 Thanks for the update!')">
+        <span class="bi">✏️</span><span>Update Price</span>
       </button>
     </div>
+    <div class="updated-row"><div class="upd-dot"></div><div class="upd-text">Prices last updated ${s.updated}</div></div>
+    <div class="sec-label">Fuel Prices</div>
+    <div class="prices-grid">${pricesHTML}</div>`;
 
-    <div class="updated-row">
-      <div class="updated-dot"></div>
-      <div class="updated-text">Prices updated ${s.updated}</div>
-    </div>
-
-    <div class="section-label">Fuel Prices</div>
-    <div class="prices-grid">${pricesHTML}</div>
-  `;
-
-  modal.classList.add('open');
+  document.getElementById('station-modal').classList.add('open');
 }
 
 function closeModal() {
   document.getElementById('station-modal').classList.remove('open');
-  activeStation = null;
-  refresh();
+  activeId=null; refresh();
 }
 
-// ── TOAST ──
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-// ── EVENTS ──
-document.querySelectorAll('.filter-pill').forEach(pill => {
-  pill.addEventListener('click', () => {
-    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-    pill.classList.add('active');
-    activeFilter = pill.dataset.filter;
-    refresh();
-  });
+// Events
+document.querySelectorAll('.filter-pill').forEach(p=>p.addEventListener('click',()=>{
+  document.querySelectorAll('.filter-pill').forEach(x=>x.classList.remove('active'));
+  p.classList.add('active'); activeFilter=p.dataset.filter; refresh();
+}));
+document.getElementById('modal-backdrop').addEventListener('click',closeModal);
+document.getElementById('panel-handle').addEventListener('click',()=>{
+  panelExpanded=!panelExpanded;
+  document.getElementById('bottom-panel').classList.toggle('expanded',panelExpanded);
 });
-
-document.getElementById('modal-backdrop').addEventListener('click', closeModal);
-
-document.getElementById('panel-handle').addEventListener('click', () => {
-  panelExpanded = !panelExpanded;
-  document.getElementById('bottom-panel').classList.toggle('expanded', panelExpanded);
+document.getElementById('sort-btn').addEventListener('click',()=>{
+  sortMode=sortMode==='distance'?'price':'distance';
+  document.getElementById('sort-btn').textContent=sortMode==='distance'?'↕ Distance':'↕ Price';
+  showToast(sortMode==='price'?'💰 Sorted by lowest price':'📍 Sorted by distance');
+  refresh();
 });
-
-document.getElementById('locate-btn').addEventListener('click', () => {
-  const btn = document.getElementById('locate-btn');
+document.getElementById('locate-btn').addEventListener('click',()=>{
+  const btn=document.getElementById('locate-btn');
   btn.classList.add('active');
-  showToast('📍 Locating you...');
-  setTimeout(() => {
+  showToast('📍 Finding your location...');
+  navigator.geolocation?.getCurrentPosition(pos=>{
+    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    placeUserDot(userPos.lat,userPos.lng);
+    map.flyTo([userPos.lat,userPos.lng],14,{duration:1});
     btn.classList.remove('active');
     showToast('✅ Showing stations near you!');
-  }, 1500);
+    refresh();
+  },()=>{ btn.classList.remove('active'); showToast('📍 Using CDO city center'); });
+});
+document.getElementById('zin').addEventListener('click',()=>map.zoomIn());
+document.getElementById('zout').addEventListener('click',()=>map.zoomOut());
+document.getElementById('search-input').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase();
+  if(!q){refresh();return;}
+  const f=stations.filter(s=>s.name.toLowerCase().includes(q)||s.address.toLowerCase().includes(q)||s.brand.includes(q))
+    .map(s=>({...s,d:dist(CDO[0],CDO[1],s.lat,s.lng),lp:Math.min(...Object.values(s.prices).map(p=>p.price))}));
+  renderMarkers(f); renderList(f);
 });
 
-document.getElementById('sort-btn').addEventListener('click', () => {
-  sortMode = sortMode === 'distance' ? 'price' : 'distance';
-  document.getElementById('sort-btn').textContent = sortMode === 'distance' ? '↕ Distance' : '↕ Price';
-  showToast(sortMode === 'price' ? 'Sorted by lowest price' : 'Sorted by distance');
-  refresh();
-});
-
-document.getElementById('search-input').addEventListener('input', (e) => {
-  const q = e.target.value.toLowerCase();
-  const filtered = stations.filter(s =>
-    s.name.toLowerCase().includes(q) ||
-    s.address.toLowerCase().includes(q) ||
-    s.brand.includes(q)
-  );
-  renderMarkers(filtered);
-  renderList(filtered);
-});
-
-// ── SPLASH ──
-window.addEventListener('load', () => {
-  refresh();
-  setTimeout(() => {
+function startApp() {
+  if (typeof L === 'undefined') { setTimeout(startApp, 100); return; }
+  initMap();
+  setTimeout(()=>{
     document.getElementById('splash').classList.add('hide');
-  }, 2000);
-});
+    showToast('📍 Showing stations in CDO');
+  }, 2200);
+}
+window.addEventListener('load', startApp);
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </body>
 </html>
